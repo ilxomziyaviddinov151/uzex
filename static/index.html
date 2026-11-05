@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UZEX · Birja AI-agenti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0e11;
+    --panel: #12161c;
+    --panel-2: #171c23;
+    --line: #232a33;
+    --text: #e7ecef;
+    --muted: #7c8793;
+    --accent: #2ee6a6;
+    --accent-dim: #19392e;
+    --warn: #f2a93b;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --grot: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--grot);
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(46,230,166,.05), transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(46,230,166,.04), transparent 40%);
+  }
+
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 20px 80px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 40px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 13px; letter-spacing: .04em; color: var(--muted); }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 3px var(--accent-dim); animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+  .meta { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; }
+  .meta span { color: var(--accent); }
+
+  .hero h1 {
+    font-size: clamp(32px, 5vw, 46px);
+    line-height: 1.12;
+    margin: 0 0 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+  .hero p { color: var(--muted); font-size: 16px; max-width: 58ch; margin: 0 0 32px; }
+
+  form { display: flex; gap: 10px; margin-bottom: 10px; }
+  .input-shell {
+    flex: 1; display: flex; align-items: center; gap: 10px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+    padding: 4px 4px 4px 16px; transition: border-color .15s ease;
+  }
+  .input-shell:focus-within { border-color: var(--accent); }
+  .input-shell svg { flex-shrink: 0; color: var(--muted); }
+  input[type=text] {
+    flex: 1; background: transparent; border: 0; outline: none;
+    color: var(--text); font-family: var(--grot); font-size: 16px; padding: 14px 0;
+  }
+  input[type=text]::placeholder { color: var(--muted); }
+  button {
+    border: 0; border-radius: 8px; padding: 0 20px; height: 44px;
+    background: var(--accent); color: #05140e; font-family: var(--mono);
+    font-weight: 600; font-size: 14px; cursor: pointer; transition: filter .15s ease, transform .1s ease;
+  }
+  button:hover { filter: brightness(1.08); }
+  button:active { transform: scale(.98); }
+  button:disabled { background: #2a3038; color: var(--muted); cursor: wait; }
+
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 36px; }
+  .chip {
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px;
+    cursor: pointer; transition: border-color .15s ease, color .15s ease;
+  }
+  .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  #panel { display: none; }
+  #panel.show { display: block; }
+
+  .status-row {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+    font-family: var(--mono); font-size: 12px; color: var(--muted);
+  }
+  .badge { padding: 3px 9px; border-radius: 999px; font-weight: 600; letter-spacing: .02em; }
+  .badge.ok { background: var(--accent-dim); color: var(--accent); }
+  .badge.none { background: #3a2420; color: var(--warn); }
+
+  .answer {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+    padding: 20px 22px; font-size: 15px; line-height: 1.65; white-space: pre-wrap;
+  }
+  .answer.empty { color: var(--warn); font-family: var(--mono); font-size: 14px; }
+
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; font-family: var(--mono); font-size: 13px; }
+  thead th {
+    text-align: left; color: var(--muted); font-weight: 500; font-size: 11px;
+    letter-spacing: .04em; padding: 0 10px 10px; border-bottom: 1px solid var(--line);
+  }
+  tbody td { padding: 10px; border-bottom: 1px solid var(--line); color: var(--text); }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover { background: var(--panel-2); }
+
+  .loading { display: flex; align-items: center; gap: 10px; color: var(--muted); font-family: var(--mono); font-size: 13px; }
+  .spinner { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); border-top-color: var(--accent); animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer { margin-top: 56px; font-family: var(--mono); font-size: 11px; color: var(--muted); display: flex; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 18px; }
+
+  @media (max-width: 560px) {
+    form { flex-direction: column; }
+    button { height: 46px; }
+    header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .meta { text-align: left; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand"><span class="dot"></span> UZEX · SPOT.UZEX.UZ</div>
+    <div class="meta">REYESTR &middot; <span id="recCount">—</span> yozuv &middot; <span id="llmState">qidiruv rejimi</span></div>
+  </header>
+
+  <div class="hero">
+    <h1>Savol bering. Faqat ma'lumot javob beradi.</h1>
+    <p>Birja bitimlari bo'yicha so'rovingizni o'zbek yoki rus tilida yozing. Agent faqat reyestrdagi ma'lumotdan foydalanadi — topilmasa, shunday deb aytadi.</p>
+  </div>
+
+  <form id="form">
+    <div class="input-shell">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="question" placeholder="Masalan: 1003-raqamli bitim qaysi tashkilotga tegishli?" autocomplete="off" required>
+    </div>
+    <button type="submit" id="btn">So'rash</button>
+  </form>
+
+  <div class="chips">
+    <span class="chip" data-q="Eng katta summadagi bitim qaysi?">Eng katta bitim</span>
+    <span class="chip" data-q="UZ-OIL-003 kodli bitim haqida ma'lumot bering">UZ-OIL-003 kodi</span>
+    <span class="chip" data-q="Какая сделка была в июне 2025?">Июнь 2025 сделка</span>
+  </div>
+
+  <div id="panel">
+    <div class="status-row">
+      <span id="badge" class="badge ok">TOPILDI</span>
+      <span id="langTag">til: uz</span>
+    </div>
+    <div id="result" class="answer"></div>
+  </div>
+
+</div>
+
+<script>
+  const form = document.getElementById("form");
+  const input = document.getElementById("question");
+  const btn = document.getElementById("btn");
+  const panel = document.getElementById("panel");
+  const result = document.getElementById("result");
+  const badge = document.getElementById("badge");
+  const langTag = document.getElementById("langTag");
+  const recCount = document.getElementById("recCount");
+  const llmState = document.getElementById("llmState");
+
+  async function loadHealth() {
+    try {
+      const res = await fetch("/api/health");
+      const data = await res.json();
+      recCount.textContent = data.records ?? "—";
+      llmState.textContent = data.llm_enabled ? "AI rejimi" : "qidiruv rejimi";
+    } catch (e) { /* jim turamiz, interfeys baribir ishlaydi */ }
+  }
+  loadHealth();
+
+  function renderTable(matches) {
+    if (!matches || !matches.length) return "";
+    const cols = Object.keys(matches[0]);
+    const head = cols.map(c => `<th>${c}</th>`).join("");
+    const rows = matches.map(m => `<tr>${cols.map(c => `<td>${m[c] ?? ""}</td>`).join("")}</tr>`).join("");
+    return `<table><thead><tr>${head}</tr></thead><tbody>${rows}</tbody></table>`;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (!q) return;
+
+    btn.disabled = true;
+    panel.classList.add("show");
+    result.className = "answer";
+    result.innerHTML = `<div class="loading"><span class="spinner"></span> Reyestrdan qidirilmoqda…</div>`;
+    badge.style.display = "none";
+    langTag.style.display = "none";
+
+    try {
+      const res = await fetch("/api/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: q })
+      });
+      const data = await res.json();
+      badge.style.display = "inline-block";
+      langTag.style.display = "inline-block";
+
+      if (!res.ok) {
+        result.className = "answer empty";
+        result.textContent = data.error || "Xatolik yuz berdi.";
+        badge.textContent = "XATOLIK"; badge.className = "badge none";
+        return;
+      }
+
+      langTag.textContent = "til: " + data.language;
+
+      if (data.found) {
+        badge.textContent = "TOPILDI"; badge.className = "badge ok";
+        result.className = "answer";
+        result.innerHTML = `<div>${data.answer.replace(/\n/g, "<br>")}</div>` + renderTable(data.matches);
+      } else {
+        badge.textContent = "TOPILMADI"; badge.className = "badge none";
+        result.className = "answer empty";
+        result.textContent = data.answer;
+      }
+    } catch (err) {
+      result.className = "answer empty";
+      result.textContent = "Serverga ulanib bo'lmadi.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.querySelectorAll(".chip").forEach((c) => {
+    c.addEventListener("click", () => {
+      input.value = c.dataset.q;
+      form.dispatchEvent(new Event("submit"));
+    });
+  });
+</script>
+</body>
+</html>

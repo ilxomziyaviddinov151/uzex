@@ -1,0 +1,15 @@
+[Unit]
+Description=Birja bitimlari AI-agenti
+After=network.target
+
+[Service]
+# Quyidagi yo'llarni o'z serveringizga moslang
+WorkingDirectory=/opt/birja_agent
+Environment="GEMINI_API_KEY=yangi_kalitingiz_shu_yerga"
+ExecStart=/opt/birja_agent/venv/bin/gunicorn app:app --bind 127.0.0.1:8000 --workers 2 --timeout 60
+Restart=always
+RestartSec=3
+User=www-data
+
+[Install]
+WantedBy=multi-user.target
